@@ -904,3 +904,56 @@ The "Target architecture" section near the top of this file lists `docs/preferen
 preference format lives in `README.md` ("The preference format"), and the per-criterion evidence map
 now lives in `docs/submission-report.md`. Recorded rather than rewritten, to keep this log an
 append-only history.
+
+---
+
+## T19 — Repository prepared, committed and pushed `DONE`
+
+**Target:** `https://github.com/Niru-9/road-to-DEVCON-P19` (created by the builder for this purpose;
+pushing this folder there was explicitly authorised).
+
+### Repository structure — why this folder is now its own repository
+
+`N:\dev8` is a single Git repository whose history predates the split into `p1/`, `p2/` and `p3/`
+(its four commits contain P1's source at the *root* level, and `p1/`, `p2/`, `p3/` are untracked
+there). Pushing from that root would have committed three different projects — and one project's
+history — into one repository, which the builder's instruction forbids. `p1/` was therefore
+initialised as its own repository, so the commit contains exactly this project folder.
+
+- Root repository `N:\dev8`: **not committed, not pushed, not modified.** Left exactly as found.
+- `p1/.git` initialised on branch `main`.
+
+### Pre-push inspection
+
+| Check | Observed |
+| --- | --- |
+| Folder contents belong to P1 | 40 tracked files: own `README.md`, `package.json`, `package-lock.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, `.gitignore`, `.env.example`, `src/{server,shared,web}`, `scripts/`, `docs/`, `action.md`. No P2/P3 files, no root `p2.md` / `p3.md` / `plan.md`. |
+| Ignored, therefore not staged | `.env` (local, git-ignored), `node_modules/`, `dist/`, `*.log`, `*.pem`, `*.key`, `secrets.json`, `wallet.json`, `.harness/` |
+| No keys, logs or databases present | none found in the folder inventory |
+| Secret scan **against the real index** (re-run after `git init`) | `RESULT: PASS` — 37 would-be-committed files, 17 patterns, plus 5 built bundle files; `.env` confirmed ignored |
+| Remote state before push | `git ls-remote` → **0 refs** (empty repository, so no remote history could be overwritten) |
+
+### Release checks run immediately before the commit
+
+| Command | Result |
+| --- | --- |
+| `npx tsc --noEmit` | clean |
+| `npm run test` | **118 passed / 118**, 6 files |
+| `npm run check` | **exit 0** |
+| `npm run check:secrets` | **PASS** (37 files against the index) |
+| `npm run harness:check` | **PASS (3/3)** local gates; no score computed |
+| `npm run build` | **PASS** — 6.69 s |
+| `ALLOW_DEMO_FIXTURES=true npm run record` | **PASS** — 4/4 recorded cases, each with a stated expected property |
+
+### Commit and push
+
+| Item | Value |
+| --- | --- |
+| Branch | `main` |
+| Commit | `f4878e9` — `feat: submit P1 portable AI preferences MVP` |
+| Remote | `origin` → `https://github.com/Niru-9/road-to-DEVCON-P19` |
+| Push | **SUCCESS** — `* [new branch] main -> main` |
+| Verified after push | `git ls-remote origin` → `f4878e9dc603a2c3d26f208108fb155c50bc5f6b refs/heads/main`, identical to local `HEAD` |
+
+Nothing was force-pushed, no history was rewritten, and no other repository was created. No ENS
+record was published and no transaction was sent. The root `.env` was not read or modified.
